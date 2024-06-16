@@ -1,0 +1,25 @@
+problem that needed to be fix (solve):
+When using one function, the data is altered,
+but when using another function,
+it reverts the data to its unaltered version.
+
+
+ideas for the dashboard:
+
+- Create a new page for Analytic
+- Make sure data used is from the Data cleaning page
+- Total amount of wet food = (seller sku or variation) * price = RM4.90
+- Total revenue = total_price - discounted
+- Repeated customer =  if customer name in list > 1  meaning they are repeated customer
+- Repeated customer name
+
+
+Important things to do:
+- add keywords so user can delete select keywords instead of typing manually to delete row
+
+
+For Dashboard
+# date of purchase and quantity
+# general time customer beli barang , brape haribulan bnyk customer based on tarikh
+
+#total customer
