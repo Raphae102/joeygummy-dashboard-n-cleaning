@@ -8,7 +8,13 @@ st.set_page_config(layout="wide")
 # Function to load data
 @st.cache_data
 def load_data(file):
-    data = pd.read_csv(file)
+    if file.name.endswith('.csv'):
+        data = pd.read_csv(file)
+    elif file.name.endswith('.xlsx'):
+        data = pd.read_excel(file)
+    else:
+        st.error("Unsupported file type. Please upload a CSV or XLSX file.")
+        return None
     data = data.iloc[1:]  # Remove the first row
     return data
 
@@ -58,52 +64,53 @@ def main():
     st.title('Joey Gummy Order Analytics')
 
     # File uploader
-    uploaded_file = st.sidebar.file_uploader('Upload your CSV file', type=['csv'])
+    uploaded_file = st.sidebar.file_uploader('Upload your CSV or XLSX file', type=['csv', 'xlsx'])
 
     if uploaded_file is not None:
         data = load_data(uploaded_file)
 
-        # Clean and preprocess data
-        data = clean_variation(data)
-        data = remove_cancelled_orders(data)
+        if data is not None:
+            # Clean and preprocess data
+            data = clean_variation(data)
+            data = remove_cancelled_orders(data)
 
-        # Ensure 'Quantity' is an integer
-        data['Quantity'] = pd.to_numeric(data['Quantity'], errors='coerce').fillna(0).astype(int)
+            # Ensure 'Quantity' is an integer
+            data['Quantity'] = pd.to_numeric(data['Quantity'], errors='coerce').fillna(0).astype(int)
 
-        # Create a new column 'Total Items' and calculate the total sum
-        data['Total Items'] = data['Variation'] * data['Quantity']
-        total_items_sold = data['Total Items'].sum()
+            # Create a new column 'Total Items' and calculate the total sum
+            data['Total Items'] = data['Variation'] * data['Quantity']
+            total_items_sold = data['Total Items'].sum()
 
-        # Calculate other metrics
-        repeated_customers = count_repeated_customers(data)
-        total_repeated_customers = len(repeated_customers)
-        total_unique_customers = data['Buyer Username'].nunique()
+            # Calculate other metrics
+            repeated_customers = count_repeated_customers(data)
+            total_repeated_customers = len(repeated_customers)
+            total_unique_customers = data['Buyer Username'].nunique()
 
-        # Display metrics using metric cards
-        cols = st.columns(3)
-        with cols[0]:
-            ui.metric_card(title="Total Repeated Customers", content=str(total_repeated_customers),
-                           description="Total number of repeated customers", key="card1")
-        with cols[1]:
-            ui.metric_card(title="Total Unique Customers", content=str(total_unique_customers),
-                           description="Total number of unique customers", key="card2")
-        with cols[2]:
-            ui.metric_card(title="Total Items Sold", content=str(total_items_sold),
-                           description="Total number of items sold", key="card3")
+            # Display metrics using metric cards
+            cols = st.columns(3)
+            with cols[0]:
+                ui.metric_card(title="Total Repeated Customers", content=str(total_repeated_customers),
+                               description="Total number of repeated customers", key="card1")
+            with cols[1]:
+                ui.metric_card(title="Total Unique Customers", content=str(total_unique_customers),
+                               description="Total number of unique customers", key="card2")
+            with cols[2]:
+                ui.metric_card(title="Total Items Sold", content=str(total_items_sold),
+                               description="Total number of items sold", key="card3")
 
-        # Display data preview after all transformations
-        st.subheader('Data Preview')
-        num_rows = st.sidebar.number_input('Number of rows to display', min_value=1, max_value=len(data),
-                                           value=len(data))
-        st.dataframe(data.head(num_rows))
+            # Display data preview after all transformations
+            st.subheader('Data Preview')
+            num_rows = st.sidebar.number_input('Number of rows to display', min_value=1, max_value=len(data),
+                                               value=len(data))
+            st.dataframe(data.head(num_rows))
 
-        # Purchase trends over time
-        st.subheader('Purchase Trends Over Time')
-        plot_purchase_trends(data)
+            # Purchase trends over time
+            st.subheader('Purchase Trends Over Time')
+            plot_purchase_trends(data)
 
-        # Purchase frequency chart
-        st.subheader('Purchase Frequency Chart')
-        plot_purchase_frequency(data, repeated_customers)
+            # Purchase frequency chart
+            st.subheader('Purchase Frequency Chart')
+            plot_purchase_frequency(data, repeated_customers)
 
 
 if __name__ == '__main__':
