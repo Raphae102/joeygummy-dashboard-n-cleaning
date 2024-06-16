@@ -18,10 +18,8 @@ def clean_variation(data):
     keywords_to_delete = ['vco30', 'vco50', 'so30', 'so50']
     pattern = '|'.join(keywords_to_delete)
     data = data[~data['Seller SKU'].str.contains(pattern, case=False, na=False)]
-    # Remove non-numeric characters
-    data['Variation'] = data['Variation'].str.replace(r'\D+', '', regex=True)
-    # Convert to numeric
-    data['Variation'] = pd.to_numeric(data['Variation'], errors='coerce').fillna(0).astype(int)
+    # Remove non-numeric characters and convert to numeric
+    data['Variation'] = data['Variation'].str.extract('(\d+)').fillna(0).astype(int)
     return data
 
 
@@ -68,11 +66,15 @@ def main():
         # Clean and preprocess data
         data = clean_variation(data)
         data = remove_cancelled_orders(data)
-        data['Quantity'] = data['Quantity'].astype(int)
-        data['Total Items'] = data['Variation'] * data['Quantity']
 
-        # Calculate metrics
+        # Ensure 'Quantity' is an integer
+        data['Quantity'] = pd.to_numeric(data['Quantity'], errors='coerce').fillna(0).astype(int)
+
+        # Create a new column 'Total Items' and calculate the total sum
+        data['Total Items'] = data['Variation'] * data['Quantity']
         total_items_sold = data['Total Items'].sum()
+
+        # Calculate other metrics
         repeated_customers = count_repeated_customers(data)
         total_repeated_customers = len(repeated_customers)
         total_unique_customers = data['Buyer Username'].nunique()
