@@ -87,7 +87,7 @@ def main():
             total_unique_customers = data['Buyer Username'].nunique()
 
             # Display metrics using metric cards
-            cols = st.columns(3)
+            cols = st.columns(4)
             with cols[0]:
                 ui.metric_card(title="Total Repeated Customers", content=str(total_repeated_customers),
                                description="Total number of repeated customers", key="card1")
@@ -97,6 +97,11 @@ def main():
             with cols[2]:
                 ui.metric_card(title="Total Items Sold", content=str(total_items_sold),
                                description="Total number of items sold", key="card3")
+            with cols[3]:
+                if 'State' in data.columns and 'Total Items' in data.columns:
+                    state_with_most_sales = data.groupby('State')['Total Items'].sum().idxmax()
+                    ui.metric_card(title="Top State", content=state_with_most_sales,
+                                   description="State with the most sales", key="card4")
 
             # Display data preview after all transformations
             st.subheader('Data Preview')
